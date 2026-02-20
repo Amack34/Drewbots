@@ -217,7 +217,7 @@ def estimate_temp(city: str, target_date: str = None) -> dict | None:
 
         # City-specific HIGH biases from prediction_log analysis (Feb 19)
         # Positive = forecast undershoots actual (actual hotter than predicted)
-        HIGH_BIASES = {"MIA": 4.0, "ATL": 3.0, "NYC": 3.0}
+        HIGH_BIASES = {"MIA": 5.0, "ATL": 5.0, "NYC": 3.0}
         if city in HIGH_BIASES:
             bias = HIGH_BIASES[city]
             estimated_high += bias
@@ -280,7 +280,7 @@ def estimate_temp(city: str, target_date: str = None) -> dict | None:
 
         # City-specific LOW biases from prediction_log analysis (Feb 19)
         # Negative = forecast overshoots actual (actual colder than predicted)
-        LOW_BIASES = {"MIA": -5.0, "NYC": -4.0}
+        LOW_BIASES = {"MIA": -6.0, "NYC": -4.0}
         if city in LOW_BIASES:
             bias = LOW_BIASES[city]
             estimated_low += bias  # bias is negative, so this subtracts
@@ -525,9 +525,16 @@ def _analyze_brackets(markets: list[dict], estimate: dict, city: str,
 
         # Calculate our estimated probability using a gaussian model
         # Standard deviation based on confidence: higher confidence = tighter distribution
+        # Per-city std_dev from prediction accuracy analysis (Feb 20):
+        #   BOS/PHI: ±1°F → tight std_dev ok
+        #   NYC: ±3-4°F → moderate
+        #   MIA: ±4-5°F → wide
+        #   ATL: ±5-11°F → very wide
         import math
-        std_dev = 4.0 - confidence * 2.0  # 2-4°F std dev based on confidence
-        std_dev = max(1.5, std_dev)
+        CITY_STD_FLOOR = {"ATL": 5.0, "MIA": 4.5, "NYC": 3.5, "DC": 3.5, "BOS": 2.5, "PHI": 2.5}
+        base_std = 4.0 - confidence * 2.0  # 2-4°F base
+        city_floor = CITY_STD_FLOOR.get(city, 3.0)
+        std_dev = max(city_floor, base_std)
         
         if is_bracket:
             # P(floor <= temp <= cap) using normal CDF approximation
