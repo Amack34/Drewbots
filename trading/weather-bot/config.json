@@ -1,0 +1,167 @@
+{
+  "kalshi": {
+    "api_key_id": "c4df656b-eb19-4e7c-945c-84dfa18904d3",
+    "private_key_path": "/root/.openclaw/workspace/trading/weather-bot/kalshi-key.key",
+    "base_url": "https://api.elections.kalshi.com",
+    "demo_url": "https://demo-api.kalshi.co"
+  },
+  "risk": {
+    "max_position_pct": 10,
+    "max_trades_per_day": 22,
+    "bonus_trades_after_wins": 18,
+    "bonus_trade_count": 2,
+    "bonus_trade_rules": {
+      "type": "longshot_take_profit_only",
+      "take_profit_pct": 35,
+      "description": "Bonus trades are longshot plays only \u2014 must take profit at 35%+, no holding to settlement"
+    },
+    "min_edge_pct": 15,
+    "take_profit_pct": 35,
+    "min_entry_price": 2,
+    "max_entry_price": 97,
+    "max_brackets_per_event": 2,
+    "strategy": "sell_overpriced_longshots",
+    "tiers": {
+      "sell_longshot": {
+        "description": "SELL overpriced YES on 5-25\u00a2 brackets (buy NO at 75-95\u00a2)",
+        "min_yes_price": 5,
+        "max_yes_price": 25,
+        "max_risk_cents": 75,
+        "max_contracts": 10,
+        "priority": 1
+      },
+      "threshold": {
+        "description": "BUY YES on threshold markets where current temp already exceeds threshold",
+        "min_price": 85,
+        "max_price": 97,
+        "max_risk_cents": 100,
+        "max_contracts": 10,
+        "priority": 2
+      },
+      "intraday_certainty": {
+        "description": "Trade brackets that METAR data confirms as near-certain",
+        "min_price": 2,
+        "max_price": 97,
+        "max_risk_cents": 100,
+        "max_contracts": 10,
+        "priority": 3
+      }
+    },
+    "max_contracts_per_ticker": 50
+  },
+  "cities": {
+    "NYC": {
+      "primary": "KNYC",
+      "surrounding": [
+        "KEWR",
+        "KJFK",
+        "KLGA",
+        "KHPN",
+        "KTEB"
+      ],
+      "kalshi_high": "KXHIGHNY",
+      "kalshi_low": "KXLOWTNYC",
+      "metar_stations": [
+        "KJFK",
+        "KLGA",
+        "KEWR"
+      ],
+      "lat": 40.7128,
+      "lon": -74.006
+    },
+    "PHI": {
+      "primary": "KPHL",
+      "surrounding": [
+        "KILG",
+        "KTTN",
+        "KACY",
+        "KRDG"
+      ],
+      "kalshi_high": "KXHIGHPHIL",
+      "kalshi_low": "KXLOWTPHIL",
+      "metar_stations": [
+        "KPHL"
+      ],
+      "lat": 39.9526,
+      "lon": -75.1652
+    },
+    "MIA": {
+      "primary": "KMIA",
+      "surrounding": [
+        "KFLL",
+        "KPBI",
+        "KEYW"
+      ],
+      "kalshi_high": "KXHIGHMIA",
+      "kalshi_low": "KXLOWTMIA",
+      "metar_stations": [
+        "KMIA",
+        "KFLL"
+      ],
+      "lat": 25.7617,
+      "lon": -80.1918
+    },
+    "BOS": {
+      "primary": "KBOS",
+      "surrounding": [
+        "KPVD",
+        "KBED",
+        "KORH"
+      ],
+      "kalshi_high": "KXHIGHTBOS",
+      "kalshi_low": null,
+      "metar_stations": [
+        "KBOS"
+      ],
+      "lat": 42.3601,
+      "lon": -71.0589
+    },
+    "DC": {
+      "primary": "KDCA",
+      "surrounding": [
+        "KIAD",
+        "KBWI"
+      ],
+      "kalshi_high": "KXHIGHTDC",
+      "kalshi_low": null,
+      "metar_stations": [
+        "KDCA",
+        "KIAD"
+      ],
+      "lat": 38.9072,
+      "lon": -77.0369
+    },
+    "ATL": {
+      "primary": "KATL",
+      "surrounding": [
+        "KPDK",
+        "KFTY"
+      ],
+      "kalshi_high": "KXHIGHTATL",
+      "kalshi_low": null,
+      "metar_stations": [
+        "KATL"
+      ],
+      "lat": 33.749,
+      "lon": -84.388
+    }
+  },
+  "trading_windows": {
+    "high_temp": {
+      "start_hour_et": 6,
+      "end_hour_et": 18,
+      "description": "Morning through late afternoon for high temp markets (peak temps 2-5pm)"
+    },
+    "low_temp": {
+      "start_hour_et": 18,
+      "end_hour_et": 8,
+      "description": "Evening/overnight/early morning for low temp markets"
+    }
+  },
+  "collector_interval_min": 30,
+  "db_path": "/root/.openclaw/workspace/trading/weather-bot/weather.db",
+  "log_dir": "/root/.openclaw/workspace/trading/weather-bot/logs",
+  "use_demo": false,
+  "disabled_cities": [],
+  "kill_switch": true
+}

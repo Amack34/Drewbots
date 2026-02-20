@@ -1,0 +1,7 @@
+*.key
+.secrets.env
+weather.db
+*.pyc
+__pycache__/
+logs/
+temp_state.json
