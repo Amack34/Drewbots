@@ -12,13 +12,20 @@ Usage:
   
   # Listen for messages in real-time (blocking)
   python3 ntfy_messenger.py listen
+  
+  # Send a structured task assignment
+  python3 ntfy_messenger.py task "Research ATL weather patterns" --priority high
+  
+  # Request status report from worker
+  python3 ntfy_messenger.py status
 """
 
 import sys
 import json
 import time
+import uuid
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Private topic — UUID-based so nobody guesses it
 TOPIC = "drewops-8e735236-5152-435b-82d7-e20d0b0593de"
@@ -37,6 +44,46 @@ def send(message: str, title: str = None, priority: int = 3, sender: str = "drew
     resp = requests.post(BASE_URL, data=full_msg.encode("utf-8"), headers=headers)
     resp.raise_for_status()
     return resp.json()
+
+def send_structured(msg_type: str, content: str, priority: str = "medium", task_id: str = None, metadata: dict = None):
+    """
+    Send a structured message with JSON metadata.
+    
+    msg_type: "task", "status_request", "message", "task_complete"
+    priority: "high", "medium", "low"
+    task_id: UUID (auto-generated if not provided)
+    """
+    if not task_id:
+        task_id = str(uuid.uuid4())
+    
+    # Build metadata
+    meta = {
+        "type": msg_type,
+        "id": task_id,
+        "priority": priority,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if metadata:
+        meta.update(metadata)
+    
+    # Map priority to ntfy priority levels (1-5)
+    ntfy_priority = {"high": 5, "medium": 3, "low": 1}.get(priority, 3)
+    
+    # Send message with metadata in header
+    headers = {
+        "Priority": str(ntfy_priority),
+        "Tags": "drewops",
+        "X-Metadata": json.dumps(meta)
+    }
+    
+    full_msg = f"[DREWOPS] {content}\n\nMetadata: {json.dumps(meta, indent=2)}"
+    
+    resp = requests.post(BASE_URL, data=full_msg.encode("utf-8"), headers=headers)
+    resp.raise_for_status()
+    
+    print(f"✅ Sent {msg_type} (ID: {task_id}, Priority: {priority})")
+    return {"message_id": task_id, "response": resp.json()}
 
 def poll(since: str = "10m", sender_filter: str = None):
     """Poll for recent messages."""
@@ -72,7 +119,7 @@ def listen():
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: ntfy_messenger.py [send|poll|listen] [args...]")
+        print("Usage: ntfy_messenger.py [send|poll|listen|task|status] [args...]")
         sys.exit(1)
     
     action = sys.argv[1]
@@ -95,6 +142,29 @@ if __name__ == "__main__":
     elif action == "listen":
         print(f"Listening on {TOPIC}...")
         listen()
+    
+    elif action == "task":
+        # Send structured task assignment
+        if len(sys.argv) < 3:
+            print("Usage: ntfy_messenger.py task \"task description\" [--priority high|medium|low]")
+            sys.exit(1)
+        
+        task_desc = sys.argv[2]
+        priority = "medium"
+        
+        # Parse optional --priority flag
+        if len(sys.argv) > 3 and sys.argv[3] == "--priority" and len(sys.argv) > 4:
+            priority = sys.argv[4].lower()
+            if priority not in ["high", "medium", "low"]:
+                print(f"Invalid priority: {priority}. Use high/medium/low")
+                sys.exit(1)
+        
+        send_structured("task", task_desc, priority=priority)
+    
+    elif action == "status":
+        # Request status report from worker
+        send_structured("status_request", "Please send status update")
+        print("📊 Status request sent")
     
     else:
         print(f"Unknown action: {action}")
