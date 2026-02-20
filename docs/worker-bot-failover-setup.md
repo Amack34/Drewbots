@@ -5,8 +5,15 @@
 ## Current Working Config (Worker Bot @ 66.228.60.51)
 
 - **Primary**: `anthropic/claude-sonnet-4-5` (Pro plan, $20/mo)
-- **Fallback**: `google/gemini-3-flash-preview` (free, 1500 req/day)
+- **Fallback**: `google/gemini-3-flash-preview` (free tier)
 - **OpenClaw version**: v2026.2.19-2
+
+### ⚠️ Gemini Free Tier Limits (Feb 20 lesson)
+- Free tier daily quota is **very small** — one heavy OpenClaw session (tool calls, browser, large system prompt) can burn through the entire day's quota
+- Per-minute token limits also tight — cascading failures happen when Claude rate-limits mid-turn and Gemini picks up a huge context
+- **Quota resets daily** — if Gemini burns out, it comes back tomorrow
+- **Fix**: Enable billing on the Google Cloud project (pay-as-you-go, essentially free for low usage) to unlock much higher quotas
+- For now: leave as-is, Gemini works as fallback for light usage days
 
 ## Critical Lesson: Check the Model Registry First!
 
@@ -119,7 +126,7 @@ Run `openclaw doctor --fix` to identify bad keys. Common: `thinking` in agents.d
 
 | Provider | Free Tier | Best Model |
 |----------|-----------|------------|
-| Google Gemini | 1500 req/day | `google/gemini-3-flash-preview` |
+| Google Gemini | ~10-15 req/day effective (free tier token limits are tight for agents) | `google/gemini-3-flash-preview` |
 | Groq | ~1000 req/day | `groq/llama-3.3-70b` |
 | OpenRouter | Some free models | Various |
 | Together | Free trial | Llama models |
